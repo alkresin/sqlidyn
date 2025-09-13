@@ -1,0 +1,9 @@
+
+*.exe
+*.lib
+*.a
+*.obj
+*.o
+*.log
+*.out
+temp/*
