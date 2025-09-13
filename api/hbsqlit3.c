@@ -99,6 +99,13 @@ HB_FUNC( SQLT_COLUMNTEXT ) {
    hb_retc( (char*) sqlt_Column_text( hb_parptr(1), hb_parni(2) ) );
 }
 
+/* sqlt_ColumnType( pStmt ) -> iType
+ */
+HB_FUNC( SQLT_COLUMNTYPE ) {
+
+   hb_retni( sqlt_Column_type( hb_parptr(1), hb_parni(2) ) );
+}
+
 /* sqlt_BindInt( pStmt, iPos, iValue ) -> iRes
  */
 HB_FUNC( SQLT_BINDINT ) {
@@ -125,4 +132,11 @@ HB_FUNC( SQLT_BINDTEXT ) {
 HB_FUNC( SQLT_CLEARBINDINGS ) {
 
    hb_retni( sqlt_Clear_bindings( hb_parptr(1) ) );
+}
+
+/* sqlt_Errcode( pDb ) -> iRes
+ */
+HB_FUNC( SQLT_ERRCODE ) {
+
+   hb_retni( sqlt_Errcode( hb_parptr(1) ) );
 }

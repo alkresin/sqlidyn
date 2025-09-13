@@ -26,8 +26,8 @@
 #include "sqlit3.h"
 
 typedef int (*psqlt_libver_t)();
-typedef int (*psqlt_open_t)( const char *filename, SQLTConn **ppDb );
-typedef int (*psqlt_open_v2_t)( const char *filename, SQLTConn **ppDb, int flags, const char *zVfs );
+typedef int (*psqlt_open_t)( const char *filename, SQLTConn **pDb );
+typedef int (*psqlt_open_v2_t)( const char *filename, SQLTConn **pDb, int flags, const char *zVfs );
 typedef int (*psqlt_close_t)( SQLTConn* db );
 typedef int (*psqlt_exec_t)( SQLTConn*, const char *sql, int (*callback)(void*,int,char**,char**), void *, char **errmsg );
 typedef int (*psqlt_prepare_v2_t)( SQLTConn *db, const char *zSql, int nByte, SQLTstmt **ppStmt, const char **pzTail );
@@ -37,11 +37,13 @@ typedef void* (*psqlt_column_blob_t)( SQLTstmt *, int iCol );
 typedef int (*psqlt_column_int_t)( SQLTstmt *, int iCol );
 typedef long (*psqlt_column_int64_t)( SQLTstmt *, int iCol );
 typedef unsigned char* (*psqlt_column_text_t)( SQLTstmt *, int iCol );
+typedef int (*psqlt_column_type_t)( SQLTstmt*, int iCol );
 typedef int (*psqlt_bind_int_t)( SQLTstmt*, int, int );
 typedef int (*psqlt_bind_int64_t)( SQLTstmt*, int, long );
 typedef int (*psqlt_bind_text_t)( SQLTstmt*,int,const char*,int,void(*)(void*));
-typedef int (*psqlt_clear_bindings_t)(sqlite3_stmt*);
+typedef int (*psqlt_clear_bindings_t)( SQLTstmt* );
 typedef long (*psqlt_last_insert_rowid_t)( SQLTConn* );
+typedef int (*psqlt_errcode_t)( SQLTConn *db );
 
 static psqlt_libver_t psqlt_libver = NULL;
 static psqlt_open_t psqlt_open = NULL;
@@ -55,11 +57,13 @@ static psqlt_column_blob_t psqlt_column_blob = NULL;
 static psqlt_column_int_t psqlt_column_int = NULL;
 static psqlt_column_int64_t psqlt_column_int64 = NULL;
 static psqlt_column_text_t psqlt_column_text = NULL;
+static psqlt_column_type_t psqlt_column_type = NULL;
 static psqlt_bind_int_t psqlt_bind_int = NULL;
 static psqlt_bind_int64_t psqlt_bind_int64 = NULL;
 static psqlt_bind_text_t psqlt_bind_text = NULL;
 static psqlt_clear_bindings_t psqlt_clear_bindings = NULL;
 static psqlt_last_insert_rowid_t psqlt_last_insert_rowid = NULL;
+static psqlt_errcode_t psqlt_errcode = NULL;
 
 LIB_HANDLE pDll = NULL;
 
@@ -365,7 +369,9 @@ SQLTConn * sqlt_Create( char * szName ) {
 
    SQLTConn *db;
 
-   //if( psqlt_open_v2( szName, &db, SQLITE_OPEN_CREATE, NULL ) == SQLITE_OK )
+   if( !pDll )
+      return NULL;
+
    if( psqlt_open( szName, &db ) == SQLITE_OK )
       return db;
 
@@ -378,6 +384,8 @@ SQLTConn * sqlt_Open( char * szName, int iFlags ) {
 
    SQLTConn *db;
 
+   if( !pDll )
+      return NULL;
    if( psqlt_open_v2( szName, &db, iFlags, NULL ) == SQLITE_OK )
       return db;
 
@@ -393,14 +401,20 @@ void sqlt_Close( SQLTConn *db ) {
 
 int sqlt_Exec( SQLTConn *db, char *szQuery ) {
 
+   if( !pDll )
+      return -1;
    return psqlt_exec( db, szQuery, 0, 0, NULL );
 }
 
 SQLTstmt * sqlt_Prepare( SQLTConn *db, char *szQuery ) {
 
    SQLTstmt *stmt;
-   int iRes = psqlt_prepare_v2( db, szQuery, -1, &stmt, 0 );
+   int iRes;
 
+   if( !pDll )
+      return NULL;
+
+   iRes = psqlt_prepare_v2( db, szQuery, -1, &stmt, 0 );
    if( iRes != SQLITE_OK )
       return NULL;
    return stmt;
@@ -469,6 +483,19 @@ unsigned char * sqlt_Column_text( SQLTstmt *stmt, int iCol ) {
    return psqlt_column_text( stmt, iCol );
 }
 
+int sqlt_Column_type( SQLTstmt *stmt, int iCol ) {
+
+   if( !psqlt_column_type ) {
+      psqlt_column_type = (psqlt_column_type_t)GET_FUNCTION( pDll, "sqlite3_column_type" );
+      if( !psqlt_column_type ) {
+         c_writelog( NULL, "Failed to get sqlite3_column_type\n" );
+         return -1;
+      }
+   }
+
+   return psqlt_column_type( stmt, iCol );
+}
+
 long sqlt_Last_insert_rowid( SQLTConn *db ) {
 
    if( !psqlt_last_insert_rowid ) {
@@ -480,6 +507,19 @@ long sqlt_Last_insert_rowid( SQLTConn *db ) {
    }
 
    return (long) psqlt_last_insert_rowid( db );
+}
+
+int sqlt_Errcode( SQLTConn *db ) {
+
+   if( !psqlt_errcode ) {
+      psqlt_errcode = (psqlt_errcode_t)GET_FUNCTION( pDll, "sqlite3_errcode" );
+      if( !psqlt_errcode ) {
+         c_writelog( NULL, "Failed to get sqlite3_errcode\n" );
+         return -1;
+      }
+   }
+
+   return psqlt_errcode( db );
 }
 
 int sqlt_Bind_int( SQLTstmt *stmt, int iPos, int iValue ) {
