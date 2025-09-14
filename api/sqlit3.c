@@ -38,9 +38,10 @@ typedef int (*psqlt_column_int_t)( SQLTstmt *, int iCol );
 typedef long (*psqlt_column_int64_t)( SQLTstmt *, int iCol );
 typedef unsigned char* (*psqlt_column_text_t)( SQLTstmt *, int iCol );
 typedef int (*psqlt_column_type_t)( SQLTstmt*, int iCol );
+typedef int (*psqlt_bind_blob_t)( SQLTstmt*, int, const void*, int n, void(*)(void*) );
 typedef int (*psqlt_bind_int_t)( SQLTstmt*, int, int );
 typedef int (*psqlt_bind_int64_t)( SQLTstmt*, int, long );
-typedef int (*psqlt_bind_text_t)( SQLTstmt*,int,const char*,int,void(*)(void*));
+typedef int (*psqlt_bind_text_t)( SQLTstmt*,int,const char*,int,void(*)(void*) );
 typedef int (*psqlt_clear_bindings_t)( SQLTstmt* );
 typedef long (*psqlt_last_insert_rowid_t)( SQLTConn* );
 typedef int (*psqlt_errcode_t)( SQLTConn *db );
@@ -58,6 +59,7 @@ static psqlt_column_int_t psqlt_column_int = NULL;
 static psqlt_column_int64_t psqlt_column_int64 = NULL;
 static psqlt_column_text_t psqlt_column_text = NULL;
 static psqlt_column_type_t psqlt_column_type = NULL;
+static psqlt_bind_blob_t psqlt_bind_blob = NULL;
 static psqlt_bind_int_t psqlt_bind_int = NULL;
 static psqlt_bind_int64_t psqlt_bind_int64 = NULL;
 static psqlt_bind_text_t psqlt_bind_text = NULL;
@@ -520,6 +522,19 @@ int sqlt_Errcode( SQLTConn *db ) {
    }
 
    return psqlt_errcode( db );
+}
+
+int sqlt_Bind_blob( SQLTstmt *stmt, int iPos, void * value, int iLen ) {
+
+   if( !psqlt_bind_blob ) {
+      psqlt_bind_blob = (psqlt_bind_blob_t)GET_FUNCTION( pDll, "sqlite3_bind_blob" );
+      if( !psqlt_bind_blob ) {
+         c_writelog( NULL, "Failed to get sqlite3_bind_int\n" );
+         return -1;
+      }
+   }
+
+   return psqlt_bind_blob( stmt, iPos, value, iLen, SQLITE_TRANSIENT );
 }
 
 int sqlt_Bind_int( SQLTstmt *stmt, int iPos, int iValue ) {

@@ -140,3 +140,10 @@ HB_FUNC( SQLT_ERRCODE ) {
 
    hb_retni( sqlt_Errcode( hb_parptr(1) ) );
 }
+
+/* sqlt_LastInsertRowid( pDb )
+ */
+HB_FUNC( SQLT_LASTINSERTROWID ) {
+
+   hb_retni( sqlt_Last_insert_rowid( hb_parptr(1) ) );
+}
