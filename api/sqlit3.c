@@ -34,17 +34,21 @@ typedef int (*psqlt_prepare_v2_t)( SQLTConn *db, const char *zSql, int nByte, SQ
 typedef int (*psqlt_step_t)( SQLTstmt* );
 typedef int (*psqlt_finalize_t)( SQLTstmt* );
 typedef void* (*psqlt_column_blob_t)( SQLTstmt *, int iCol );
+typedef double (*psqlt_column_double_t)( SQLTstmt*, int iCol );
 typedef int (*psqlt_column_int_t)( SQLTstmt *, int iCol );
 typedef long (*psqlt_column_int64_t)( SQLTstmt *, int iCol );
 typedef unsigned char* (*psqlt_column_text_t)( SQLTstmt *, int iCol );
 typedef int (*psqlt_column_type_t)( SQLTstmt*, int iCol );
+typedef int (*psqlt_column_bytes_t)( SQLTstmt*, int iCol );
 typedef int (*psqlt_bind_blob_t)( SQLTstmt*, int, const void*, int n, void(*)(void*) );
+typedef int (*psqlt_bind_double_t)( SQLTstmt*, int, double );
 typedef int (*psqlt_bind_int_t)( SQLTstmt*, int, int );
 typedef int (*psqlt_bind_int64_t)( SQLTstmt*, int, long );
 typedef int (*psqlt_bind_text_t)( SQLTstmt*,int,const char*,int,void(*)(void*) );
 typedef int (*psqlt_clear_bindings_t)( SQLTstmt* );
 typedef long (*psqlt_last_insert_rowid_t)( SQLTConn* );
 typedef int (*psqlt_errcode_t)( SQLTConn *db );
+typedef int (*psqlt_changes_t)( SQLTConn *db );
 
 static psqlt_libver_t psqlt_libver = NULL;
 static psqlt_open_t psqlt_open = NULL;
@@ -55,18 +59,23 @@ static psqlt_prepare_v2_t psqlt_prepare_v2 = NULL;
 static psqlt_step_t psqlt_step = NULL;
 static psqlt_finalize_t psqlt_finalize = NULL;
 static psqlt_column_blob_t psqlt_column_blob = NULL;
+static psqlt_column_double_t psqlt_column_double = NULL;
 static psqlt_column_int_t psqlt_column_int = NULL;
 static psqlt_column_int64_t psqlt_column_int64 = NULL;
 static psqlt_column_text_t psqlt_column_text = NULL;
 static psqlt_column_type_t psqlt_column_type = NULL;
+static psqlt_column_bytes_t psqlt_column_bytes = NULL;
 static psqlt_bind_blob_t psqlt_bind_blob = NULL;
+static psqlt_bind_double_t psqlt_bind_double = NULL;
 static psqlt_bind_int_t psqlt_bind_int = NULL;
 static psqlt_bind_int64_t psqlt_bind_int64 = NULL;
 static psqlt_bind_text_t psqlt_bind_text = NULL;
 static psqlt_clear_bindings_t psqlt_clear_bindings = NULL;
 static psqlt_last_insert_rowid_t psqlt_last_insert_rowid = NULL;
 static psqlt_errcode_t psqlt_errcode = NULL;
+static psqlt_changes_t psqlt_changes = NULL;
 
+static char * errNoFunc = "Failed to get %s\n";
 LIB_HANDLE pDll = NULL;
 
 void c_writelog( const char * sFile, const char * sTraceMsg, ... )
@@ -105,6 +114,7 @@ static BOOL AddDirectoryToPath( const char* filePath ) {
    size_t pathLength = 0;
    char* currentPath = NULL;
    char* newPath = NULL;
+   size_t newPathSize;
    BOOL result = FALSE;
    size_t neededSize = 0;
 
@@ -118,7 +128,8 @@ static BOOL AddDirectoryToPath( const char* filePath ) {
     pathOnly = (char*)malloc(pathLength + 1);
 
     // Копируем только путь
-    strncpy_s( pathOnly, pathLength + 1, filePath, pathLength );
+    //strncpy_s( pathOnly, pathLength + 1, filePath, pathLength );
+    strncpy( pathOnly, filePath, pathLength );
     pathOnly[pathLength] = '\0';
 
     // Получаем текущее значение PATH
@@ -143,7 +154,7 @@ static BOOL AddDirectoryToPath( const char* filePath ) {
     }
 
     // Выделяем память для нового PATH (текущий PATH + ; + новый путь)
-    size_t newPathSize = strlen(currentPath) + strlen(pathOnly) + 2; // +2 для ';' и '\0'
+    newPathSize = strlen(currentPath) + strlen(pathOnly) + 2; // +2 для ';' и '\0'
     newPath = (char*) malloc( newPathSize );
 
     // Формируем новый PATH
@@ -164,13 +175,13 @@ static BOOL AddDirectoryToPath( const char* filePath ) {
 static void FindAndOpenLib( const char* szDllName ) {
 
    if( !szDllName ) {
-      pDll = LoadLibraryA( "sqlite3.dll" );
+      pDll = LoadLibraryA( "./sqlite3.dll" );
       if( !pDll )
          c_writelog( NULL, "Failed to load sqlite3.dll\n" );
       return;
    }
 
-   AddDirectoryToPath(  szDllName );
+   AddDirectoryToPath( szDllName );
    pDll = LoadLibraryA( szDllName );
 }
 #else
@@ -443,7 +454,20 @@ void * sqlt_Column_blob( SQLTstmt *stmt, int iCol ) {
       }
    }
 
-   return psqlt_column_blob( stmt, iCol );
+   return psqlt_column_blob( stmt, iCol-1 );
+}
+
+double sqlt_Column_double( SQLTstmt *stmt, int iCol ) {
+
+   if( !psqlt_column_double ) {
+      psqlt_column_double = (psqlt_column_double_t)GET_FUNCTION( pDll, "sqlite3_column_double" );
+      if( !psqlt_column_double ) {
+         c_writelog( NULL, "Failed to get sqlite3_column_double\n" );
+         return -1;
+      }
+   }
+
+   return psqlt_column_double( stmt, iCol-1 );
 }
 
 int sqlt_Column_int( SQLTstmt *stmt, int iCol ) {
@@ -456,7 +480,7 @@ int sqlt_Column_int( SQLTstmt *stmt, int iCol ) {
       }
    }
 
-   return psqlt_column_int( stmt, iCol );
+   return psqlt_column_int( stmt, iCol-1 );
 }
 
 long sqlt_Column_int64( SQLTstmt *stmt, int iCol ) {
@@ -469,7 +493,7 @@ long sqlt_Column_int64( SQLTstmt *stmt, int iCol ) {
       }
    }
 
-   return (long) psqlt_column_int64( stmt, iCol );
+   return (long) psqlt_column_int64( stmt, iCol-1 );
 }
 
 unsigned char * sqlt_Column_text( SQLTstmt *stmt, int iCol ) {
@@ -482,7 +506,7 @@ unsigned char * sqlt_Column_text( SQLTstmt *stmt, int iCol ) {
       }
    }
 
-   return psqlt_column_text( stmt, iCol );
+   return psqlt_column_text( stmt, iCol-1 );
 }
 
 int sqlt_Column_type( SQLTstmt *stmt, int iCol ) {
@@ -495,41 +519,29 @@ int sqlt_Column_type( SQLTstmt *stmt, int iCol ) {
       }
    }
 
-   return psqlt_column_type( stmt, iCol );
+   return psqlt_column_type( stmt, iCol-1 );
 }
 
-long sqlt_Last_insert_rowid( SQLTConn *db ) {
+int sqlt_Column_bytes( SQLTstmt *stmt, int iCol ) {
 
-   if( !psqlt_last_insert_rowid ) {
-      psqlt_last_insert_rowid = (psqlt_last_insert_rowid_t)GET_FUNCTION( pDll, "sqlite3_last_insert_rowid" );
-      if( !psqlt_last_insert_rowid ) {
-         c_writelog( NULL, "Failed to get sqlite3_last_insert_rowid\n" );
+   if( !psqlt_column_bytes ) {
+      psqlt_column_bytes = (psqlt_column_bytes_t)GET_FUNCTION( pDll, "sqlite3_column_bytes" );
+      if( !psqlt_column_bytes ) {
+         c_writelog( NULL, "Failed to get sqlite3_column_bytes\n" );
          return -1;
       }
    }
 
-   return (long) psqlt_last_insert_rowid( db );
-}
-
-int sqlt_Errcode( SQLTConn *db ) {
-
-   if( !psqlt_errcode ) {
-      psqlt_errcode = (psqlt_errcode_t)GET_FUNCTION( pDll, "sqlite3_errcode" );
-      if( !psqlt_errcode ) {
-         c_writelog( NULL, "Failed to get sqlite3_errcode\n" );
-         return -1;
-      }
-   }
-
-   return psqlt_errcode( db );
+   return psqlt_column_bytes( stmt, iCol-1 );
 }
 
 int sqlt_Bind_blob( SQLTstmt *stmt, int iPos, void * value, int iLen ) {
 
    if( !psqlt_bind_blob ) {
-      psqlt_bind_blob = (psqlt_bind_blob_t)GET_FUNCTION( pDll, "sqlite3_bind_blob" );
+      char *szFunc = "sqlite3_bind_blob";
+      psqlt_bind_blob = (psqlt_bind_blob_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_bind_blob ) {
-         c_writelog( NULL, "Failed to get sqlite3_bind_int\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -537,12 +549,27 @@ int sqlt_Bind_blob( SQLTstmt *stmt, int iPos, void * value, int iLen ) {
    return psqlt_bind_blob( stmt, iPos, value, iLen, SQLITE_TRANSIENT );
 }
 
+int sqlt_Bind_double( SQLTstmt *stmt, int iPos, double dValue ) {
+
+   if( !psqlt_bind_double ) {
+      char *szFunc = "sqlite3_bind_double";
+      psqlt_bind_double = (psqlt_bind_double_t)GET_FUNCTION( pDll, szFunc );
+      if( !psqlt_bind_double ) {
+         c_writelog( NULL, errNoFunc, szFunc );
+         return -1;
+      }
+   }
+
+   return psqlt_bind_double( stmt, iPos, dValue );
+}
+
 int sqlt_Bind_int( SQLTstmt *stmt, int iPos, int iValue ) {
 
    if( !psqlt_bind_int ) {
-      psqlt_bind_int = (psqlt_bind_int_t)GET_FUNCTION( pDll, "sqlite3_bind_int" );
+      char *szFunc = "sqlite3_bind_int";
+      psqlt_bind_int = (psqlt_bind_int_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_bind_int ) {
-         c_writelog( NULL, "Failed to get sqlite3_bind_int\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -587,4 +614,44 @@ int sqlt_Clear_bindings( SQLTstmt *stmt ) {
    }
 
    return psqlt_clear_bindings( stmt );
+}
+
+long sqlt_Last_insert_rowid( SQLTConn *db ) {
+
+   if( !psqlt_last_insert_rowid ) {
+      psqlt_last_insert_rowid = (psqlt_last_insert_rowid_t)GET_FUNCTION( pDll, "sqlite3_last_insert_rowid" );
+      if( !psqlt_last_insert_rowid ) {
+         c_writelog( NULL, "Failed to get sqlite3_last_insert_rowid\n" );
+         return -1;
+      }
+   }
+
+   return (long) psqlt_last_insert_rowid( db );
+}
+
+int sqlt_Errcode( SQLTConn *db ) {
+
+   if( !psqlt_errcode ) {
+      psqlt_errcode = (psqlt_errcode_t)GET_FUNCTION( pDll, "sqlite3_errcode" );
+      if( !psqlt_errcode ) {
+         c_writelog( NULL, "Failed to get sqlite3_errcode\n" );
+         return -1;
+      }
+   }
+
+   return psqlt_errcode( db );
+}
+
+int sqlt_Changes( SQLTConn *db ) {
+
+   if( !psqlt_changes ) {
+      char *szFunc = "sqlite3_changes";
+      psqlt_changes = (psqlt_errcode_t)GET_FUNCTION( pDll, szFunc );
+      if( !psqlt_changes ) {
+         c_writelog( NULL, errNoFunc, szFunc );
+         return -1;
+      }
+   }
+
+   return psqlt_changes( db );
 }

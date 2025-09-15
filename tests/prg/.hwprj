@@ -1,8 +1,10 @@
 
-{win}c_compiler=mingw64
+{win}c_compiler=mingw
 guilib=
 {unix}libs=dl
 $PGINC=.
+
+prgflags=-I../../include
 
 {win}def_cflags=-c -I..\..\api
 {unix}def_cflags=-c -Wall -I../../api
