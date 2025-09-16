@@ -36,7 +36,7 @@ HB_FUNC( SQLT_CREATE ) {
    hb_retptr( sqlt_Create( (char*) hb_parc(1) ) );
 }
 
-/* sqlt_Open( cDbName ) -> pDb
+/* sqlt_Open( cDbName[, iOpt] ) -> pDb
  */
 HB_FUNC( SQLT_OPEN ) {
 
