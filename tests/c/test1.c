@@ -4,7 +4,7 @@
 int main( void ) {
 
    if( sqlt_Init( NULL ) ) {
-      printf( "Can't load libsqlite3" );
+      printf( "Can't load sqlite shared library" );
       return -1;
    }
 

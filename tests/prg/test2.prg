@@ -27,7 +27,7 @@ FUNCTION Main()
 
    IF !Empty( hStmt := sqlt_Prepare( hDb, "SELECT SQLITE_VERSION()" ) )
       ? "Step", sqlt_Step( hStmt )
-      ? sqlt_ColumnText( hStmt, 0 )
+      ? sqlt_ColumnText( hStmt, 1 )
       sqlt_Finalize( hStmt )
    ENDIF
 
