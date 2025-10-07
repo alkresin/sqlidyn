@@ -175,7 +175,8 @@ static BOOL AddDirectoryToPath( const char* filePath ) {
 static void FindAndOpenLib( const char* szDllName ) {
 
    if( !szDllName ) {
-      pDll = LoadLibraryA( "./sqlite3.dll" );
+      //pDll = LoadLibraryA( "./sqlite3.dll" );
+      pDll = LoadLibraryA( "sqlite3.dll" );
       if( !pDll )
          c_writelog( NULL, "Failed to load sqlite3.dll\n" );
       return;

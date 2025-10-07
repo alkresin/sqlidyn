@@ -32,6 +32,7 @@ Creates a new database *cDbName* and returns the handler.
 Opens a new database *cDbName* and returns the handler.
 
 #### sqlt_Close( pDb )
+Closes the connection to a database
 
 #### sqlt_Exec( pDb, cQuery ) -> iRes
 
