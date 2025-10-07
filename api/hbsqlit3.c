@@ -1,4 +1,10 @@
-
+/*
+ * SqliDyn - Harbour SQLite API
+ * Harbour bindings for sqlite3 shared library - dynamic linking
+ *
+ * Copyright 2025 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
 
 #include "hbapi.h"
 #include "hbapifs.h"

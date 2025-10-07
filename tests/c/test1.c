@@ -1,3 +1,11 @@
+/*
+ * SqliDyn - Harbour SQLite API
+ * Test of C Bindings
+ *
+ * Copyright 2025 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
+
 #include <stdio.h>
 #include "sqlit3.h"
 

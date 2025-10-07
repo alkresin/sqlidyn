@@ -1,3 +1,10 @@
+/*
+ * SqliDyn - Harbour SQLite API
+ * Header file
+ *
+ * Copyright 2025 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
 
 typedef struct sqlite3 SQLTConn;
 typedef struct sqlite3_stmt SQLTstmt;

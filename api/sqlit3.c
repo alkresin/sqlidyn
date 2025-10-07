@@ -1,6 +1,6 @@
 /*
- * HbPostgres - Harbour PostgreSQL API
- * C bindings for libpq - dynamic linking
+ * SqliDyn - Harbour SQLite API
+ * C bindings for sqlite3 shared library - dynamic linking
  *
  * Copyright 2025 Alexander S.Kresin <alex@kresin.ru>
  * www - http://www.kresin.ru
