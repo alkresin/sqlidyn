@@ -1,6 +1,6 @@
 /*
  * SqliDyn - Harbour SQLite API
- * Test of Harbour bindings
+ * Test of Harbour bindings - just loads the shared library and prints it's version
  *
  * Copyright 2025 Alexander S.Kresin <alex@kresin.ru>
  * www - http://www.kresin.ru

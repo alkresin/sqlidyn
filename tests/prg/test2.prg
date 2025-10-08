@@ -1,6 +1,6 @@
 /*
  * SqliDyn - Harbour SQLite API
- * Test of Harbour bindings
+ * Test of Harbour bindings - creates a database, writes and reads data
  *
  * Copyright 2025 Alexander S.Kresin <alex@kresin.ru>
  * www - http://www.kresin.ru
