@@ -8,12 +8,15 @@
 
 FUNCTION Main( cHost )
 
+   LOCAL nVer
+
    IF sqlt_Init() != 0
       ? "Can't load libsqlite"
       RETURN Nil
    ENDIF
 
-   ? "Library version:", sqlt_LibVersion()
+   ? "Library version:", nVer := sqlt_LibVersion()
+   ?? " (" + ver2str(nVer) + ")"
 
    sqlt_Exit( )
 
@@ -21,3 +24,7 @@ FUNCTION Main( cHost )
    Inkey(0)
 
    RETURN Nil
+
+STATIC FUNCTION ver2str( nVer )
+   RETURN Ltrim(Str(Int(nVer/1000000))) + "." + Ltrim(Str(Int((nVer/1000)%1000))) + ;
+      "." + Ltrim(Str(Int(nVer%1000)))
