@@ -8,7 +8,7 @@
 
 FUNCTION Main()
 
-   LOCAL hConn, hDb, hStmt
+   LOCAL hDb, hStmt
 
    IF sqlt_Init() != 0
       ? "Can't load sqlite shared library"
