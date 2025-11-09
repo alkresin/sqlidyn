@@ -299,8 +299,11 @@ static void FindAndOpenLib( const char* szDllName ) {
 
 int sqlt_Init( const char* szDllName ) {
 
+   if( pDll )
+      return 0;
+
    FindAndOpenLib( szDllName );
-   if (!pDll ) {
+   if( !pDll ) {
       c_writelog( NULL, "Failed to load library\n" );
       return 1;
    }
