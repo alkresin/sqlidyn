@@ -84,7 +84,7 @@ void c_writelog( const char * sFile, const char * sTraceMsg, ... )
 
    if( sFile == NULL )
    {
-      hFile = fopen( "ac.log", "a" );
+      hFile = fopen( "sqlidyn.log", "a" );
    }
    else
    {
@@ -175,10 +175,7 @@ static BOOL AddDirectoryToPath( const char* filePath ) {
 static void FindAndOpenLib( const char* szDllName ) {
 
    if( !szDllName ) {
-      //pDll = LoadLibraryA( "./sqlite3.dll" );
       pDll = LoadLibraryA( "sqlite3.dll" );
-      if( !pDll )
-         c_writelog( NULL, "Failed to load sqlite3.dll\n" );
       return;
    }
 
@@ -309,51 +306,58 @@ int sqlt_Init( const char* szDllName ) {
    }
 
    if( !psqlt_open ) {
-      psqlt_open = (psqlt_open_t)GET_FUNCTION( pDll, "sqlite3_open" );
+      char *szFunc = "sqlite3_open";
+      psqlt_open = (psqlt_open_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_open ) {
-         c_writelog( NULL, "Failed to get sqlite3_open\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
    if( !psqlt_open_v2 ) {
-      psqlt_open_v2 = (psqlt_open_v2_t)GET_FUNCTION( pDll, "sqlite3_open_v2" );
+      char *szFunc = "sqlite3_open_v2";
+      psqlt_open_v2 = (psqlt_open_v2_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_open_v2 ) {
-         c_writelog( NULL, "Failed to get sqlite3_open_v2\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
    if( !psqlt_close ) {
-      psqlt_close = (psqlt_close_t)GET_FUNCTION( pDll, "sqlite3_close" );
+      char *szFunc = "sqlite3_close";
+      psqlt_close = (psqlt_close_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_close ) {
-         c_writelog( NULL, "Failed to get sqlite3_close\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
    if( !psqlt_exec ) {
-      psqlt_exec = (psqlt_exec_t)GET_FUNCTION( pDll, "sqlite3_exec" );
+      char *szFunc = "sqlite3_exec";
+      psqlt_exec = (psqlt_exec_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_exec ) {
-         c_writelog( NULL, "Failed to get sqlite3_exec\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
    if( !psqlt_prepare_v2 ) {
-      psqlt_prepare_v2 = (psqlt_prepare_v2_t)GET_FUNCTION( pDll, "sqlite3_prepare_v2" );
+      char *szFunc = "sqlite3_prepare_v2";
+      psqlt_prepare_v2 = (psqlt_prepare_v2_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_prepare_v2 ) {
-         c_writelog( NULL, "Failed to get sqlite3_prepare_v2\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
    if( !psqlt_step ) {
-      psqlt_step = (psqlt_step_t)GET_FUNCTION( pDll, "sqlite3_step" );
+      char *szFunc = "sqlite3_step";
+      psqlt_step = (psqlt_step_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_step ) {
-         c_writelog( NULL, "Failed to get sqlite3_step\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
    if( !psqlt_finalize ) {
-      psqlt_finalize = (psqlt_finalize_t)GET_FUNCTION( pDll, "sqlite3_finalize" );
+      char *szFunc = "sqlite3_finalize";
+      psqlt_finalize = (psqlt_finalize_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_finalize ) {
-         c_writelog( NULL, "Failed to get sqlite3_finalize\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return 2;
       }
    }
@@ -373,9 +377,10 @@ int sqlt_libVersion() {
    if( !pDll )
       return -1;
    if( !psqlt_libver ) {
-      psqlt_libver = (psqlt_libver_t)GET_FUNCTION( pDll, "sqlite3_libversion_number" );
+      char *szFunc = "sqlite3_libversion_number";
+      psqlt_libver = (psqlt_libver_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_libver ) {
-         c_writelog( NULL, "Failed to get sqlite3_libversion_number\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -451,9 +456,10 @@ int sqlt_Finalize( SQLTstmt *stmt ) {
 void * sqlt_Column_blob( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_blob ) {
-      psqlt_column_blob = (psqlt_column_blob_t)GET_FUNCTION( pDll, "sqlite3_column_blob" );
+      char *szFunc = "sqlite3_column_blob";
+      psqlt_column_blob = (psqlt_column_blob_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_blob ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_blob\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return NULL;
       }
    }
@@ -464,9 +470,10 @@ void * sqlt_Column_blob( SQLTstmt *stmt, int iCol ) {
 double sqlt_Column_double( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_double ) {
-      psqlt_column_double = (psqlt_column_double_t)GET_FUNCTION( pDll, "sqlite3_column_double" );
+      char *szFunc = "sqlite3_column_double";
+      psqlt_column_double = (psqlt_column_double_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_double ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_double\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -477,9 +484,10 @@ double sqlt_Column_double( SQLTstmt *stmt, int iCol ) {
 int sqlt_Column_int( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_int ) {
-      psqlt_column_int = (psqlt_column_int_t)GET_FUNCTION( pDll, "sqlite3_column_int" );
+      char *szFunc = "sqlite3_column_int";
+      psqlt_column_int = (psqlt_column_int_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_int ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_int\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -490,9 +498,10 @@ int sqlt_Column_int( SQLTstmt *stmt, int iCol ) {
 long sqlt_Column_int64( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_int64 ) {
-      psqlt_column_int64 = (psqlt_column_int64_t)GET_FUNCTION( pDll, "sqlite3_column_int64" );
+      char *szFunc = "sqlite3_column_int64";
+      psqlt_column_int64 = (psqlt_column_int64_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_int64 ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_int64\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -503,9 +512,10 @@ long sqlt_Column_int64( SQLTstmt *stmt, int iCol ) {
 unsigned char * sqlt_Column_text( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_text ) {
-      psqlt_column_text = (psqlt_column_text_t)GET_FUNCTION( pDll, "sqlite3_column_text" );
+      char *szFunc = "sqlite3_column_text";
+      psqlt_column_text = (psqlt_column_text_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_text ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_text\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return NULL;
       }
    }
@@ -516,9 +526,10 @@ unsigned char * sqlt_Column_text( SQLTstmt *stmt, int iCol ) {
 int sqlt_Column_type( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_type ) {
-      psqlt_column_type = (psqlt_column_type_t)GET_FUNCTION( pDll, "sqlite3_column_type" );
+      char *szFunc = "sqlite3_column_type";
+      psqlt_column_type = (psqlt_column_type_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_type ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_type\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -529,9 +540,10 @@ int sqlt_Column_type( SQLTstmt *stmt, int iCol ) {
 int sqlt_Column_bytes( SQLTstmt *stmt, int iCol ) {
 
    if( !psqlt_column_bytes ) {
-      psqlt_column_bytes = (psqlt_column_bytes_t)GET_FUNCTION( pDll, "sqlite3_column_bytes" );
+      char *szFunc = "sqlite3_column_bytes";
+      psqlt_column_bytes = (psqlt_column_bytes_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_column_bytes ) {
-         c_writelog( NULL, "Failed to get sqlite3_column_bytes\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -584,9 +596,10 @@ int sqlt_Bind_int( SQLTstmt *stmt, int iPos, int iValue ) {
 int sqlt_Bind_int64( SQLTstmt *stmt, int iPos, long lValue ) {
 
    if( !psqlt_bind_int64 ) {
-      psqlt_bind_int64 = (psqlt_bind_int64_t)GET_FUNCTION( pDll, "sqlite3_bind_int64" );
+      char *szFunc = "sqlite3_bind_int64";
+      psqlt_bind_int64 = (psqlt_bind_int64_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_bind_int64 ) {
-         c_writelog( NULL, "Failed to get sqlite3_bind_int64\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -597,9 +610,10 @@ int sqlt_Bind_int64( SQLTstmt *stmt, int iPos, long lValue ) {
 int sqlt_Bind_text( SQLTstmt *stmt, int iPos, char * szValue ) {
 
    if( !psqlt_bind_text ) {
-      psqlt_bind_text = (psqlt_bind_text_t)GET_FUNCTION( pDll, "sqlite3_bind_text" );
+      char *szFunc = "sqlite3_bind_text";
+      psqlt_bind_text = (psqlt_bind_text_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_bind_text ) {
-         c_writelog( NULL, "Failed to get sqlite3_bind_text\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -610,9 +624,10 @@ int sqlt_Bind_text( SQLTstmt *stmt, int iPos, char * szValue ) {
 int sqlt_Clear_bindings( SQLTstmt *stmt ) {
 
    if( !psqlt_clear_bindings ) {
-      psqlt_clear_bindings = (psqlt_clear_bindings_t)GET_FUNCTION( pDll, "sqlite3_clear_bindings" );
+      char *szFunc = "sqlite3_clear_bindings";
+      psqlt_clear_bindings = (psqlt_clear_bindings_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_clear_bindings ) {
-         c_writelog( NULL, "Failed to get sqlite3_clear_bindings\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -623,9 +638,10 @@ int sqlt_Clear_bindings( SQLTstmt *stmt ) {
 long sqlt_Last_insert_rowid( SQLTConn *db ) {
 
    if( !psqlt_last_insert_rowid ) {
-      psqlt_last_insert_rowid = (psqlt_last_insert_rowid_t)GET_FUNCTION( pDll, "sqlite3_last_insert_rowid" );
+      char *szFunc = "sqlite3_last_insert_rowid";
+      psqlt_last_insert_rowid = (psqlt_last_insert_rowid_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_last_insert_rowid ) {
-         c_writelog( NULL, "Failed to get sqlite3_last_insert_rowid\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
@@ -636,9 +652,10 @@ long sqlt_Last_insert_rowid( SQLTConn *db ) {
 int sqlt_Errcode( SQLTConn *db ) {
 
    if( !psqlt_errcode ) {
-      psqlt_errcode = (psqlt_errcode_t)GET_FUNCTION( pDll, "sqlite3_errcode" );
+      char *szFunc = "sqlite3_errcode";
+      psqlt_errcode = (psqlt_errcode_t)GET_FUNCTION( pDll, szFunc );
       if( !psqlt_errcode ) {
-         c_writelog( NULL, "Failed to get sqlite3_errcode\n" );
+         c_writelog( NULL, errNoFunc, szFunc );
          return -1;
       }
    }
