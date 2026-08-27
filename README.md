@@ -42,6 +42,8 @@ Closes the connection to a database
 
 #### sqlt_Finalize( pStmt ) -> iRes
 
+#### sqlt_ColumnCount( pStmt ) -> iValue
+
 #### sqlt_ColumnBlob( pStmt, iCol ) -> cValue
 
 #### sqlt_ColumnDouble( pStmt, iCol ) -> iValue
