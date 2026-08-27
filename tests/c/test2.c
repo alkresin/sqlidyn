@@ -46,7 +46,7 @@ int main( void ) {
 
       stmt = sqlt_Prepare( db, "SELECT id,name,note,dcreate FROM data" );
       if( stmt ) {
-         printf( "Step: %d: ", sqlt_Step( stmt ) );
+         printf( "Step: %d: (%d columns): ", sqlt_Step( stmt ), sqlt_Column_count(stmt) );
          printf( "%d %s %s %d\n", sqlt_Column_int(stmt,1), sqlt_Column_text(stmt,2),
             sqlt_Column_text(stmt,3), sqlt_Column_int(stmt,4) );
          printf( "Step: %d: ", sqlt_Step( stmt ) );

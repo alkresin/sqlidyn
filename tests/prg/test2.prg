@@ -45,6 +45,7 @@ FUNCTION Main()
 
    IF !Empty( hStmt := sqlt_Prepare( hDb, "SELECT id,name,note,dcreate FROM data" ) )
       ? "Step " + Str( sqlt_Step(hStmt),3 ) + ": "
+      ?? "(" + Ltrim(Str(sqlt_ColumnCount( hStmt ))) + " columns): "
       ?? sqlt_ColumnInt( hStmt, 1 ), sqlt_ColumnText( hStmt, 2 ), ;
          sqlt_ColumnText( hStmt, 3 ), sqlt_ColumnInt( hStmt, 4 )
       ? "Step " + Str( sqlt_Step(hStmt),3 ) + ": "
